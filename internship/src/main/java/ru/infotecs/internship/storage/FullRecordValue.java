@@ -1,8 +1,6 @@
 package ru.infotecs.internship.storage;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class FullRecordValue extends RecordValue {
 

@@ -39,8 +39,7 @@ public class StorageMap implements Serializable {
     public Boolean isKeyExist(String key) {
         try {
             return storage.containsKey(key);
-        }
-        catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             return false;
         }
     }

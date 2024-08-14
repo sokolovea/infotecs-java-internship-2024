@@ -3,6 +3,7 @@ package ru.infotecs.internship;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import ru.infotecs.internship.json.JsonResponse;
 import ru.infotecs.internship.json.JsonResponseExtended;
 import ru.infotecs.internship.storage.FullRecordValue;
@@ -10,12 +11,10 @@ import ru.infotecs.internship.storage.EnumStorageStatus;
 import ru.infotecs.internship.storage.RecordValue;
 import ru.infotecs.internship.storage.StorageMap;
 
-import javax.xml.crypto.Data;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
 
 @RestController
 @RequestMapping("/storage")
@@ -31,7 +30,8 @@ public class StorageController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                     new JsonResponseExtended(EnumStorageStatus.VALUE_EMPTY));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(new JsonResponseExtended(EnumStorageStatus.VALUE_GET_OK, value.getValue()));
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new JsonResponseExtended(EnumStorageStatus.VALUE_GET_OK, value.getValue()));
     }
 
     @PostMapping
@@ -82,6 +82,7 @@ public class StorageController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
     @PostMapping("/load")
     public ResponseEntity<?> loadStorage(@RequestParam("file") MultipartFile file) {
         try (ObjectInputStream in = new ObjectInputStream(file.getInputStream())) {

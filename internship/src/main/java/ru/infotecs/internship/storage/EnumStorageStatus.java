@@ -21,6 +21,7 @@ public enum EnumStorageStatus {
     private EnumStorageStatus(String status) {
         this.status = status;
     }
+
     public String getStatus() {
         return status;
     }

@@ -16,8 +16,8 @@ public class StorageMap implements Serializable {
     }
 
     public void putValue(String key, String value) throws NullPointerException {
-        RecordValue recordValue = new RecordValue(value, DEFAULT_TTL_SECONDS);
-        storage.put(key, recordValue);
+        RecordValue newRecordValue = new RecordValue(value, DEFAULT_TTL_SECONDS);
+        storage.put(key, newRecordValue);
     }
 
     public void putValue(String key, String value, int ttl) {
@@ -36,8 +36,17 @@ public class StorageMap implements Serializable {
         return storage.remove(key);
     }
 
+    public Boolean isKeyExist(String key) {
+        try {
+            return storage.containsKey(key);
+        }
+        catch (NullPointerException e) {
+            return false;
+        }
+    }
+
     public static Boolean isTtlCorrect(int ttl) {
-        return ttl > 0;
+        return (ttl > 0);
     }
 
 }

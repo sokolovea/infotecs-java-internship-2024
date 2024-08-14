@@ -1,14 +1,23 @@
 package ru.infotecs.internship.storage;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 public class RecordValue implements Serializable {
-    private String value;
-    private int tll;
 
-    public RecordValue(String value, int tll) {
+    @JsonProperty("value")
+    private String value = null;
+
+    @JsonProperty("ttl")
+    private Integer ttl = null;
+
+    public RecordValue() {
+    }
+
+    public RecordValue(String value, int ttl) {
         this.value = value;
-        this.tll = tll;
+        this.ttl = ttl;
     }
 
     public String getValue() {
@@ -19,11 +28,11 @@ public class RecordValue implements Serializable {
         this.value = value;
     }
 
-    public int getTll() {
-        return tll;
+    public Integer getTtl() {
+        return ttl;
     }
 
-    public void setTll(int tll) {
-        this.tll = tll;
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
     }
 }

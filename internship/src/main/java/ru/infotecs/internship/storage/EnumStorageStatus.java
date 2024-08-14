@@ -1,8 +1,5 @@
 package ru.infotecs.internship.storage;
 
-/**
- * Add javadoc
- */
 public enum EnumStorageStatus {
     KEY_EMPTY("Key is empty"),
     KEY_NOT_EXIST("Key does not exist"),

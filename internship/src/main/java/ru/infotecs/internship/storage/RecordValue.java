@@ -9,15 +9,15 @@ public class RecordValue implements Serializable {
     @JsonProperty("value")
     private String value = null;
 
-    @JsonProperty("ttl")
-    private Integer ttl = null;
+    @JsonProperty("expirationTime")
+    private Long expirationTime = null;
 
     public RecordValue() {
     }
 
-    public RecordValue(String value, int ttl) {
+    public RecordValue(String value, long ttlMs) {
         this.value = value;
-        this.ttl = ttl;
+        setTtlMs(ttlMs);
     }
 
     public String getValue() {
@@ -28,11 +28,22 @@ public class RecordValue implements Serializable {
         this.value = value;
     }
 
-    public Integer getTtl() {
-        return ttl;
+    public Long getExpirationTime() {
+        return expirationTime;
     }
 
-    public void setTtl(int ttl) {
-        this.ttl = ttl;
+    public void setExpirationTime(Long expirationTime) {
+        this.expirationTime = expirationTime;
+    }
+
+    public Long getTtlMs() {
+        if (expirationTime == null) {
+            return null;
+        }
+        return expirationTime - System.currentTimeMillis();
+    }
+
+    public void setTtlMs(long ttlMs) {
+        this.expirationTime = System.currentTimeMillis() + ttlMs;
     }
 }

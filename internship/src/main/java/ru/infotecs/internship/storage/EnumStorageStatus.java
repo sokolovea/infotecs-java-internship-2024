@@ -3,7 +3,7 @@ package ru.infotecs.internship.storage;
 public enum EnumStorageStatus {
     KEY_EMPTY("Key is empty"),
     KEY_NOT_EXIST("Key does not exist"),
-    VALUE_EMPTY("Value is empty"),
+    VALUE_NOT_EXIST("Value does not exist"),
     VALUE_GET_OK("Value get ok"),
     VALUE_GET_ERROR("Error while get value"),
     VALUE_SET_OK("Value set ok"),

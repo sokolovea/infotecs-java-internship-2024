@@ -140,7 +140,7 @@ public class StorageMap implements Externalizable {
 
     /**
      * Checks if the provided TTL value in milliseconds is correct.
-     * It was decided not to fix ttlMs <= 0 on DEFAULT_TTL_MS automatically,
+     * It was decided not to fix ttlMs less than 0 on DEFAULT_TTL_MS automatically,
      * "correct" value means not null and less than MAX_TTL_MS
      * @param ttlMs the TTL value in milliseconds to check
      * @return true if the TTL is not null, false otherwise

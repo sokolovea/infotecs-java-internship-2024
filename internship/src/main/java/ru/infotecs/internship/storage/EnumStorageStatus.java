@@ -1,6 +1,10 @@
 package ru.infotecs.internship.storage;
 
+/**
+ * Represents statuses of operations with the storage.
+ */
 public enum EnumStorageStatus {
+
     KEY_EMPTY("Key is empty"),
     VALUE_NOT_EXIST("Value does not exist"),
     VALUE_GET_OK("Value get ok"),
@@ -13,10 +17,20 @@ public enum EnumStorageStatus {
 
     private final String status;
 
+    /**
+     * Constructs an {@code EnumStorageStatus} with the specified status message.
+     *
+     * @param status the status message associated with this enum constant.
+     */
     private EnumStorageStatus(String status) {
         this.status = status;
     }
 
+    /**
+     * Retrieves the status message associated with this enum constant.
+     *
+     * @return the status message.
+     */
     public String getStatus() {
         return status;
     }

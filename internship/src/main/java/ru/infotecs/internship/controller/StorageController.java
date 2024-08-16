@@ -1,4 +1,4 @@
-package ru.infotecs.internship;
+package ru.infotecs.internship.controller;
 
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +35,7 @@ public class StorageController {
     /**
      * Gets a value from the storage by key.
      *
-     * @param key the key of the record to retrieve
+     * @param key the key of the record to get
      * @return a {@link ResponseEntity} containing the {@link JsonResponseExtended} that
      * contains the record value and the results of operation and timestamp.
      */

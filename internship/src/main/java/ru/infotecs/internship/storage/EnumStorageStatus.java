@@ -13,7 +13,8 @@ public enum EnumStorageStatus {
     VALUE_REMOVE_OK("Value remove ok"),
     VALUE_DUMP_ERROR("Error while dump storage"),
     VALUE_LOAD_OK("Value load ok"),
-    VALUE_LOAD_ERROR("Error while load storage");
+    VALUE_LOAD_ERROR("Error while load storage"),
+    CONNECTION_TEST_OK("Connection test ok!");
 
     private final String status;
 
@@ -27,7 +28,7 @@ public enum EnumStorageStatus {
     }
 
     /**
-     * Retrieves the status message associated with this enum constant.
+     * Gets the status message associated with this enum constant.
      *
      * @return the status message.
      */

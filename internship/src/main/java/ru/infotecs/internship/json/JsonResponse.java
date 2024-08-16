@@ -20,6 +20,13 @@ public class JsonResponse {
     private String timestamp;
 
     /**
+     * Default constructs a new {@code JsonResponse}.
+     * Needs for correct deserialization by Jackson library.
+     */
+    public JsonResponse() {
+    }
+
+    /**
      * Constructs a new {@code JsonResponse} with the given status.
      * The timestamp is set to the current time.
      *

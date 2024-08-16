@@ -23,6 +23,9 @@ public class StorageMap implements Externalizable {
     /** Default time to live in milliseconds for records. */
     public static final Long DEFAULT_TTL_MS = 60_000L;
 
+    /** Max time to live in milliseconds for records (100 years :-)). */
+    public static final Long MAX_TTL_MS = 3153600000000L;
+
     /** Simple key-value storage. */
     private ConcurrentHashMap<String, RecordValue> storage = new ConcurrentHashMap<>();
 
@@ -137,12 +140,13 @@ public class StorageMap implements Externalizable {
 
     /**
      * Checks if the provided TTL value in milliseconds is correct.
-     *
+     * It was decided not to fix ttlMs <= 0 on DEFAULT_TTL_MS automatically,
+     * "correct" value means not null and less than MAX_TTL_MS
      * @param ttlMs the TTL value in milliseconds to check
      * @return true if the TTL is not null, false otherwise
      */
     public static Boolean isTtlCorrect(Long ttlMs) {
-        return (ttlMs != null); //It was decided not to fix ttl <= 0 on DEFAULT_TTL_MS automatically
+        return (ttlMs != null) && (ttlMs <= MAX_TTL_MS);
     }
 
     /**
@@ -167,7 +171,6 @@ public class StorageMap implements Externalizable {
     @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
         storage = (ConcurrentHashMap<String, RecordValue>) in.readObject();
-//        System.out.println("Init: " + storage.size());
         long oldReferencePointTime = in.readLong();
         long referencePointTime = System.currentTimeMillis();
         long deltaTime = referencePointTime - oldReferencePointTime;
@@ -188,7 +191,6 @@ public class StorageMap implements Externalizable {
      */
     @PreDestroy
     public void stopTrim() {
-//        System.out.println("Trim stopped");
         scheduler.shutdownNow();
     }
 
@@ -196,18 +198,14 @@ public class StorageMap implements Externalizable {
      * Trims expired records from the storage.
      */
     private void trim() {
-//        System.out.println("Before trimming " + storage.size());
         long currentTime = System.currentTimeMillis();
         for (Map.Entry<String, RecordValue> entry : storage.entrySet()) {
             storage.computeIfPresent(entry.getKey(), (keyInternal, valueInternal) -> {
-//                if (keyInternal.equals("1"))
-//                    System.out.println("Осталось:" + (valueInternal.getExpirationTime() - System.currentTimeMillis()) / 1000);
                 if (valueInternal.getExpirationTime() == null || valueInternal.getExpirationTime() < currentTime) {
                     return null;
                 }
                 return valueInternal;
             });
         }
-        System.out.println("Trimmed " + storage.size());
     }
 }

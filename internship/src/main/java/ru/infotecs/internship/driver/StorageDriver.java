@@ -12,24 +12,59 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
+/**
+ * Driver for developed key-value database.
+ */
 public class StorageDriver {
 
+    /**
+     * Default inputStream
+     */
     public static int DEFAULT_TIMEOUT_MS = 1000;
+
+    /**
+     * Text representation of server root URL
+     */
     private String serverURL;
+
+    /**
+     * Representation of server root URL
+     */
     private int timeoutMs;
 
+    /**
+     * Private constructor. Use factory method connectStorage.
+     */
     private StorageDriver() {
     }
 
+    /**
+     * Factory method for creating new instance of StorageDriver class.
+     * Also checks connection with server, if failed, then throws StorageDriverException.
+     *
+     * @param host – server address
+     * @param port – server port
+     * @return new instance of StorageDriver class if connection check has passed
+     * @throws StorageDriverException if connection check failed
+     */
     public static StorageDriver connectStorage(String host, int port) throws StorageDriverException {
         return connectStorage(host, port, true, DEFAULT_TIMEOUT_MS);
     }
 
-    public static StorageDriver connectStorage(String host, int port,
-                                               boolean isConnectionChecked, int timeoutMs) throws StorageDriverException {
+    /**
+     * More configurable factory method for creating new instance of StorageDriver class.
+     * @param host – server address
+     * @param port – server port
+     * @param isConnectionChecked – needing for checking connection with server in method
+     * @param timeoutMs – timeout for operations with server. If 0 then infinite timeout
+     * @return new instance of StorageDriver class
+     * @throws StorageDriverException if connection check failed
+     */
+    public static StorageDriver connectStorage(String host, int port, boolean isConnectionChecked,
+                                               int timeoutMs) throws StorageDriverException {
         StorageDriver driver = new StorageDriver();
         HttpURLConnection connection = null;
-        driver.timeoutMs = timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;;
+        driver.timeoutMs = timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
         try {
             URI uri = new URI("http", null, host, port, null, null, null);
             driver.serverURL = uri.toString();
@@ -38,7 +73,7 @@ public class StorageDriver {
                 return driver;
             }
 
-            //Connection check
+            //Connection check block
             URL testUrl = new URL(driver.serverURL + "/test");
             connection = (HttpURLConnection) testUrl.openConnection();
             connection.setRequestMethod("GET");
@@ -71,6 +106,13 @@ public class StorageDriver {
         return driver;
     }
 
+    /**
+     * Gets String representation of server response
+     *
+     * @param connection – connection with server
+     * @return string representation of server response
+     * @throws IOException if response process failed
+     */
     private static String getResponse(HttpURLConnection connection) throws IOException {
         StringBuilder response = new StringBuilder();
         InputStream inputStream = null;
@@ -89,11 +131,27 @@ public class StorageDriver {
         return response.toString();
     }
 
+    /**
+     * Converts JSON to related object.
+     * @param response – string representation of JSON server response
+     * @param responseClass – class of object to be created
+     * @return object representation of JSON
+     * @param <T> – the type of class (must be JsonResponse or extend it)
+     * @throws IOException if the conversion failed
+     */
     private static <T extends JsonResponse> T parseJson(String response, Class<T> responseClass) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(response, responseClass);
     }
 
+    /**
+     * Gets value by key from the database.
+     *
+     * @param key – key for database
+     * @return value by key
+     * @throws IOException if problems with connection occurs
+     * @throws StorageDriverException if server sends an incorrect respons.
+     */
     public String get(String key) throws IOException, StorageDriverException {
         URL url = new URL(serverURL + "/storage/" + key);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -105,10 +163,19 @@ public class StorageDriver {
             JsonResponseExtended jsonResponseExtended = parseJson(response, JsonResponseExtended.class);
             return jsonResponseExtended.getData();
         } catch (JacksonException e) {
-            throw new StorageDriverException("Server connection test failed! JSON response is not valid!");
+            throw new StorageDriverException("JSON response is not valid!");
         }
     }
 
+    /**
+     * Sets value by key for database.
+     *
+     * @param key – 
+     * @param value –
+     * @param ttl –
+     * @return
+     * @throws IOException
+     */
     public boolean set(String key, String value, Long ttl) throws IOException {
         URL url = new URL(serverURL);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();

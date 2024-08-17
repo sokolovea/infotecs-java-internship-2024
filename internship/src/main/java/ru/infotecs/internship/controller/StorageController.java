@@ -123,7 +123,7 @@ public class StorageController {
     /**
      * Loads storage data from an uploaded file.
      *
-     * @param file – contains serialized storage data
+     * @param inputStream – stream containing serialized storage data
      * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
      * contains the results of operation and timestamp.
      */

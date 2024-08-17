@@ -4,7 +4,6 @@ import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import ru.infotecs.internship.json.JsonRequest;
 import ru.infotecs.internship.json.JsonResponse;
@@ -13,17 +12,13 @@ import ru.infotecs.internship.storage.EnumStorageStatus;
 import ru.infotecs.internship.storage.RecordValue;
 import ru.infotecs.internship.storage.StorageMap;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
 /**
  * REST controller for managing the storage operations.
  * Provides methods to get, set, remove, dump, and load values from the storage.
  */
 @RestController
-@RequestMapping("/storage")
 public class StorageController {
 
     /**
@@ -39,7 +34,7 @@ public class StorageController {
      * @return a {@link ResponseEntity} containing the {@link JsonResponseExtended} that
      * contains the record value and the results of operation and timestamp.
      */
-    @GetMapping("{key}")
+    @GetMapping("/storage/{key}")
     public ResponseEntity<?> getValue(@PathVariable String key) {
         RecordValue value;
         value = storage.getValue(key);
@@ -58,7 +53,7 @@ public class StorageController {
      * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
      * contains the results of operation and timestamp.
      */
-    @PostMapping
+    @PostMapping("/storage")
     public ResponseEntity<?> setValue(@RequestBody JsonRequest requestBody) {
         boolean isValueAlreadyExists = false;
 
@@ -91,7 +86,7 @@ public class StorageController {
      * @return a {@link ResponseEntity} containing the {@link JsonResponseExtended} that
      * contains the record value (maybe null) and the results of operation and timestamp.
      */
-    @DeleteMapping("{key}")
+    @DeleteMapping("/storage/{key}")
     public ResponseEntity<?> removeValue(@PathVariable String key) {
         if (!storage.isKeyValid(key)) {
             return ResponseEntity.status(HttpStatus.OK).body(
@@ -128,21 +123,44 @@ public class StorageController {
     /**
      * Loads storage data from an uploaded file.
      *
-     * @param file the file containing the serialized storage data
+     * @param file – contains serialized storage data
      * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
      * contains the results of operation and timestamp.
      */
     @PutMapping("/load")
-    public ResponseEntity<?> loadStorage(@RequestParam("file") MultipartFile file) {
-        try (ObjectInputStream in = new ObjectInputStream(file.getInputStream())) {
+    public ResponseEntity<?> loadStorage(InputStream inputStream) {
+        try (ObjectInputStream in = new ObjectInputStream(inputStream)) {
             storage = (StorageMap) in.readObject();
             storage.stopTrim();
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     new JsonResponse(EnumStorageStatus.VALUE_LOAD_OK));
         } catch (IOException | ClassNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     new JsonResponse(EnumStorageStatus.VALUE_LOAD_ERROR));
         }
+    }
+
+    /**
+     * Notifies the client that the server is working properly (used in the driver).
+     *
+     * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
+     * contains the result of operation (successful) and timestamp.
+     */
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                new JsonResponse(EnumStorageStatus.CONNECTION_TEST_OK));
+    }
+
+    /**
+     * Processes unhandled exceptions.
+     * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
+     * contains the error code and timestamp.
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleException() {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                new JsonResponse(EnumStorageStatus.INTERNAL_SERVER_ERROR));
     }
 
     /**

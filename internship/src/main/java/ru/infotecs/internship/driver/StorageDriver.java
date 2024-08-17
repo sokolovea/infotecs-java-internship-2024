@@ -1,37 +1,39 @@
 package ru.infotecs.internship.driver;
 
 import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
 import org.springframework.http.HttpStatus;
 import ru.infotecs.internship.json.JsonResponse;
+import ru.infotecs.internship.json.JsonResponseExtended;
 import ru.infotecs.internship.storage.EnumStorageStatus;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 
 public class StorageDriver {
 
+    public static int DEFAULT_TIMEOUT_MS = 1000;
     private String serverURL;
+    private int timeoutMs;
 
     private StorageDriver() {
     }
 
     public static StorageDriver connectStorage(String host, int port) throws StorageDriverException {
-        return connectStorage(host, port, true);
+        return connectStorage(host, port, true, DEFAULT_TIMEOUT_MS);
     }
 
     public static StorageDriver connectStorage(String host, int port,
-                                               boolean isConnectionChecked) throws StorageDriverException {
+                                               boolean isConnectionChecked, int timeoutMs) throws StorageDriverException {
         StorageDriver driver = new StorageDriver();
         HttpURLConnection connection = null;
+        driver.timeoutMs = timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;;
         try {
             URI uri = new URI("http", null, host, port, null, null, null);
             driver.serverURL = uri.toString();
+
             if (!isConnectionChecked) {
                 return driver;
             }
@@ -40,30 +42,22 @@ public class StorageDriver {
             URL testUrl = new URL(driver.serverURL + "/test");
             connection = (HttpURLConnection) testUrl.openConnection();
             connection.setRequestMethod("GET");
-            connection.setReadTimeout(1000);
+            connection.setReadTimeout(timeoutMs);
 
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpStatus.OK.value()) {
                 throw new StorageDriverException("Server connection test failed! Response code is not 200!");
             }
 
-            StringBuilder response = new StringBuilder();
-            try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                String inputLine;
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-            }
-
-            ObjectMapper mapper = new ObjectMapper();
-            JsonResponse jsonResponse = mapper.readValue(response.toString(), JsonResponse.class);
+            String response = getResponse(connection);
+            JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
 
             if (jsonResponse.getStatus() != EnumStorageStatus.CONNECTION_TEST_OK) {
                 throw new StorageDriverException(
                         String.format("Server connection test failed! JSON status is not %s!",
                                 EnumStorageStatus.CONNECTION_TEST_OK));
             }
+
         } catch (URISyntaxException e) {
             return null;
         } catch (IOException e) {
@@ -77,89 +71,147 @@ public class StorageDriver {
         return driver;
     }
 
-//    public String getValue(String key) throws IOException {
-//        URL url = new URL(connection.getURL() + "/" + key);
-//        HttpURLConnection getConnection = (HttpURLConnection) url.openConnection();
-//        getConnection.setRequestMethod("GET");
-//
-//        int responseCode = getConnection.getResponseCode();
-//        if (responseCode == HttpURLConnection.HTTP_OK) {
-//            BufferedReader in = new BufferedReader(new InputStreamReader(getConnection.getInputStream()));
-//            String inputLine;
-//            StringBuilder response = new StringBuilder();
-//
-//            while ((inputLine = in.readLine()) != null) {
-//                response.append(inputLine);
-//            }
-//            in.close();
-//            return response.toString();
-//        } else {
-//            return null; // Или выбросить исключение
-//        }
-//    }
-//
-//    public boolean setValue(String key, String value, Long ttl) throws IOException {
-//        URL url = connection.getURL();
-//        HttpURLConnection postConnection = (HttpURLConnection) url.openConnection();
-//        postConnection.setRequestMethod("POST");
-//        postConnection.setRequestProperty("Content-Type", "application/json; utf-8");
-//        postConnection.setDoOutput(true);
-//
-//        String jsonInputString = String.format("{\"key\":\"%s\", \"value\":\"%s\", \"ttlSeconds\":%d}", key, value, ttl);
-//
-//        try (OutputStream os = postConnection.getOutputStream()) {
-//            byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-//            os.write(input, 0, input.length);
-//        }
-//
-//        int responseCode = postConnection.getResponseCode();
-//        return responseCode == HttpURLConnection.HTTP_OK;
-//    }
-//
-//    public boolean removeValue(String key) throws IOException {
-//        URL url = new URL(connection.getURL() + "/" + key);
-//        HttpURLConnection deleteConnection = (HttpURLConnection) url.openConnection();
-//        deleteConnection.setRequestMethod("DELETE");
-//
-//        int responseCode = deleteConnection.getResponseCode();
-//        return responseCode == HttpURLConnection.HTTP_OK;
-//    }
-//
-//    public byte[] dumpStorage() throws IOException {
-//        URL url = new URL(connection.getURL() + "/dump");
-//        HttpURLConnection dumpConnection = (HttpURLConnection) url.openConnection();
-//        dumpConnection.setRequestMethod("GET");
-//
-//        int responseCode = dumpConnection.getResponseCode();
-//        if (responseCode == HttpURLConnection.HTTP_OK) {
-//            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//            try (InputStream inputStream = dumpConnection.getInputStream()) {
-//                byte[] buffer = new byte[1024];
-//                int bytesRead;
-//                while ((bytesRead = inputStream.read(buffer)) != -1) {
-//                    byteArrayOutputStream.write(buffer, 0, bytesRead);
-//                }
-//            }
-//            return byteArrayOutputStream.toByteArray();
-//        } else {
-//            return null; // Или выбросить исключение
-//        }
-//    }
-//
-//    public boolean loadStorage(byte[] data) throws IOException {
-//        URL url = new URL(connection.getURL() + "/load");
-//        HttpURLConnection loadConnection = (HttpURLConnection) url.openConnection();
-//        loadConnection.setRequestMethod("PUT");
-//        loadConnection.setDoOutput(true);
-//        loadConnection.setRequestProperty("Content-Type", "application/octet-stream");
-//
-//        try (OutputStream os = loadConnection.getOutputStream()) {
-//            os.write(data);
-//        }
-//
-//        int responseCode = loadConnection.getResponseCode();
-//        return responseCode == HttpURLConnection.HTTP_CREATED;
-//    }
+    private static String getResponse(HttpURLConnection connection) throws IOException {
+        StringBuilder response = new StringBuilder();
+        InputStream inputStream = null;
+        if (connection.getResponseCode() >= HttpStatus.BAD_REQUEST.value()) {
+            //all error codes
+            inputStream = connection.getErrorStream();
+        } else {
+            inputStream = connection.getInputStream();
+        }
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(inputStream))) {
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        }
+        return response.toString();
+    }
+
+    private static <T extends JsonResponse> T parseJson(String response, Class<T> responseClass) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue(response, responseClass);
+    }
+
+    public String get(String key) throws IOException, StorageDriverException {
+        URL url = new URL(serverURL + "/storage/" + key);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setReadTimeout(1000);
+
+        try {
+            String response = getResponse(connection);
+            JsonResponseExtended jsonResponseExtended = parseJson(response, JsonResponseExtended.class);
+            return jsonResponseExtended.getData();
+        } catch (JacksonException e) {
+            throw new StorageDriverException("Server connection test failed! JSON response is not valid!");
+        }
+    }
+
+    public boolean set(String key, String value, Long ttl) throws IOException {
+        URL url = new URL(serverURL);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json; utf-8");
+        connection.setDoOutput(true);
+
+        String jsonRequest = String.format("{\"key\":\"%s\", \"value\":\"%s\", \"ttlSeconds\":%d}", key, value, ttl);
+
+        try (OutputStream os = connection.getOutputStream()) {
+            byte[] input = jsonRequest.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+
+        String response = getResponse(connection);
+        JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
+
+        return jsonResponse.getStatus() == EnumStorageStatus.VALUE_SET_OK
+                || jsonResponse.getStatus() == EnumStorageStatus.VALUE_SET_UPDATE_OK;
+    }
+
+    public int getTimeoutMs() {
+        return timeoutMs;
+    }
+
+    public void setTimeoutMs(int timeoutMs) {
+        this.timeoutMs = timeoutMs;
+    }
+
+    public boolean remove(String key) throws IOException {
+        URL url = new URL(serverURL + "/storage/" + key);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("DELETE");
+
+        String response = getResponse(connection);
+        JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
+
+        return jsonResponse.getStatus() == EnumStorageStatus.VALUE_REMOVE_OK;
+    }
+
+    public void dump(Path dirPath, String fileName) throws IOException {
+        URL url = new URL(serverURL + "/dump");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        int responseCode = connection.getResponseCode(); //no JSON
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            try (InputStream inputStream = connection.getInputStream();
+                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+                byte[] buffer = new byte[4096];
+                int bytesRead;
+
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    byteArrayOutputStream.write(buffer, 0, bytesRead);
+                }
+
+                File file = new File(dirPath.toString(), fileName);
+
+                if (!file.exists()) {
+                    file.createNewFile();
+                }
+
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    byteArrayOutputStream.writeTo(fos);
+                }
+            }
+        }
+
+    }
+
+    public boolean load(Path dirPath, String fileName) throws IOException {
+        URL url = new URL(serverURL + "/load");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/octet-stream");
+
+        File file = new File(dirPath.toString(), fileName);
+        if (!file.canRead()) {
+            throw new IOException("Cannot read file: " + file.getAbsoluteFile());
+        }
+
+        try (FileInputStream fis = new FileInputStream(file);
+             OutputStream os = connection.getOutputStream()) {
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+
+
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);  // Пишем данные напрямую в OutputStream
+            }
+
+            os.flush();  // Убедимся, что все данные отправлены на сервер
+        }
+
+        // Получаем и обрабатываем ответ сервера
+        String response = getResponse(connection);
+        JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
+
+        return jsonResponse.getStatus() == EnumStorageStatus.VALUE_LOAD_OK;
+    }
 //
 //    public void disconnect() {
 //        if (connection != null) {

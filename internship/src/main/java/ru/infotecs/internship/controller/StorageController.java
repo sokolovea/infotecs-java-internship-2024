@@ -123,7 +123,7 @@ public class StorageController {
     /**
      * Loads storage data from an uploaded file.
      *
-     * @param inputStream – stream containing serialized storage data
+     * @param inputStream stream containing serialized storage data
      * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
      * contains the results of operation and timestamp.
      */
@@ -154,6 +154,7 @@ public class StorageController {
 
     /**
      * Processes unhandled exceptions.
+     *
      * @return a {@link ResponseEntity} containing the {@link JsonResponse} that
      * contains the error code and timestamp.
      */

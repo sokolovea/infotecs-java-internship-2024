@@ -36,7 +36,7 @@ public class JsonRequest {
     /**
      * Sets key associated with record.
      *
-     * @param key – key associated with record
+     * @param key key associated with record
      */
     public void setKey(String key) {
         this.key = key;
@@ -52,7 +52,7 @@ public class JsonRequest {
     /**
      * Sets record value.
      *
-     * @param value – record value
+     * @param value record value
      */
     public void setValue(String value) {
         this.value = value;
@@ -70,7 +70,7 @@ public class JsonRequest {
     /**
      * Sets time to live for record.
      *
-     * @param ttlSeconds – time to live in seconds
+     * @param ttlSeconds time to live in seconds
      */
     public void setTtlSeconds(Long ttlSeconds) {
         this.ttlSeconds = ttlSeconds;

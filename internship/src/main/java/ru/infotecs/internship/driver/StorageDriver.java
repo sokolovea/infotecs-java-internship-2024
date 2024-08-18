@@ -1,8 +1,6 @@
 package ru.infotecs.internship.driver;
 
 import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import ru.infotecs.internship.json.JsonResponse;
 import ru.infotecs.internship.json.JsonResponseExtended;
@@ -12,6 +10,8 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+
+import static ru.infotecs.internship.json.util.JsonProcessor.parseJson;
 
 /**
  * Driver for developed key-value database.
@@ -130,24 +130,6 @@ public class StorageDriver {
             }
         }
         return response.toString();
-    }
-
-    /**
-     * Converts JSON to related object.
-     * @param response string representation of JSON server response
-     * @param responseClass class of object to be created
-     * @return object representation of JSON
-     * @param <T> the type of class (must be JsonResponse or extend it)
-     * @throws StorageDriverException if the conversion failed
-     */
-    private static <T extends JsonResponse> T parseJson(String response,
-                                                        Class<T> responseClass) throws StorageDriverException {
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.readValue(response, responseClass);
-        } catch (JsonProcessingException e) {
-            throw new StorageDriverException("JSON response is not valid!");
-        }
     }
 
     /**

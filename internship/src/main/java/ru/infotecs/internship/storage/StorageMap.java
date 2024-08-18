@@ -1,7 +1,11 @@
 package ru.infotecs.internship.storage;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -18,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * Storage for simple key-value database with TTL.
  * Implements {@link Externalizable} for custom serialization.
  */
-@Component()
+@Component
 public class StorageMap implements Externalizable {
 
     /**
@@ -34,7 +38,7 @@ public class StorageMap implements Externalizable {
     /**
      * Delay in millisecond for trim process.
      */
-    public static final long TRIM_DELAY_MS = 2000L;
+    public static final long TRIM_DELAY_MS = 1000L;
 
     /**
      * Maximum ttl difference between equals values (because of serialization and other processing delay)

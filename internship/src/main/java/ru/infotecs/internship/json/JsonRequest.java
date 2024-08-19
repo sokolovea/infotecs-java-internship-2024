@@ -75,4 +75,9 @@ public class JsonRequest {
     public void setTtlSeconds(Long ttlSeconds) {
         this.ttlSeconds = ttlSeconds;
     }
+
+    @Override
+    public String toString() {
+        return String.format("{ \"key\": \"%s\", \"value\": \"%s\", \"ttlSeconds\": %d }", key, value, ttlSeconds);
+    }
 }

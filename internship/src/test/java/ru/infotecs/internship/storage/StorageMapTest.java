@@ -7,11 +7,23 @@ import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Tests for StorageMap class.
+ * The tests cover most of the non-trivial methods.
+ */
 public class StorageMapTest {
 
+    /**
+     * Maximal delay of key-value database in seconds.
+     * Needs for correct TTL calculating.
+     */
     public static final double MAX_STORAGE_DELAY = 0.01;
-    public static final long DELTA_TIME_MS = 100;
 
+    /**
+     * Delay for waiting for the trim process to remove expired records.
+     */
+    public static final long DELTA_TIME_MS = 100;
 
     @Test
     void putNewValueShouldCreateNewRecord() {
@@ -27,8 +39,9 @@ public class StorageMapTest {
         storageMap.putValue("myKey", "myValue2", 700L);
         RecordValue recordValue = storageMap.getValue("myKey");
         assertEquals("myValue2", recordValue.getValue());
-        assertEquals((double)700L, (double)recordValue.getTtlMs() / 1000, MAX_STORAGE_DELAY);
+        assertEquals((double) 700L, (double) recordValue.getTtlMs() / 1000, MAX_STORAGE_DELAY);
     }
+
     @Test
     void getValueShouldReturnNullForNonExistentKey() {
         StorageMap storageMap = new StorageMap();

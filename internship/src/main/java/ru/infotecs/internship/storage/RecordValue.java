@@ -34,7 +34,7 @@ public class RecordValue implements Serializable {
      * @param value the value of the record
      * @param ttlMs the time to live in milliseconds
      */
-    public RecordValue(String value, long ttlMs) {
+    public RecordValue(String value, Long ttlMs) {
         this.value = value;
         setTtlMs(ttlMs);
     }

@@ -118,7 +118,6 @@ public class StorageDriver {
         StringBuilder response = new StringBuilder();
         InputStream inputStream = null;
         if (connection.getResponseCode() >= HttpStatus.BAD_REQUEST.value()) {
-            //all error codes
             inputStream = connection.getErrorStream();
         } else {
             inputStream = connection.getInputStream();

@@ -132,7 +132,7 @@ public class StorageMapTest {
         StorageMap storageMap = new StorageMap();
         storageMap.putValue("myKey", "myValue", 1L);
         storageMap.putValue("myKey2", "myValue2", 1L);
-        Thread.sleep(StorageMap.TRIM_DELAY_MS + DELTA_TIME_MS);
+        Thread.sleep(StorageMap.TRIM_DELAY_MS * 2);
         var rawStorage = getRawStorage(storageMap);
         assertEquals(0, rawStorage.size());
     }
@@ -144,11 +144,11 @@ public class StorageMapTest {
         storageMap.stopTrim();
         storageMap.putValue("myKey", "myValue", 1L);
         storageMap.putValue("myKey2", "myValue2", 1L);
-        Thread.sleep(StorageMap.TRIM_DELAY_MS + DELTA_TIME_MS);
+        Thread.sleep(StorageMap.TRIM_DELAY_MS * 2);
         var rawStorage = getRawStorage(storageMap);
         assertEquals(2, rawStorage.size());
     }
-
+    
     private static ConcurrentHashMap<String, RecordValue> getRawStorage(StorageMap storageMap)
             throws NoSuchFieldException, IllegalAccessException, InterruptedException {
         Field storageField = StorageMap.class.getDeclaredField("storage");

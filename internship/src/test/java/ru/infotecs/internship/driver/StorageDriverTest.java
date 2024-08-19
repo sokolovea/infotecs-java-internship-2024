@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import ru.infotecs.internship.storage.StorageException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,7 +22,7 @@ public class StorageDriverTest {
     private StorageDriver storageDriver;
 
     @BeforeEach
-    public void setUp() throws StorageDriverException {
+    public void setUp() throws StorageException {
         storageDriver = StorageDriver.connectStorage("localhost", port);
     }
 
@@ -31,33 +32,33 @@ public class StorageDriverTest {
     }
 
     @Test
-    public void testSetNewValueAndGetItShouldBeCorrect() throws StorageDriverException, IOException {
+    public void testSetNewValueAndGetItShouldBeCorrect() throws StorageException, IOException {
         storageDriver.set("myKey", "myValue", DEFAULT_TESTING_TTL_SECONDS);
         String responseValue = storageDriver.get("myKey");
         Assertions.assertEquals(responseValue, "myValue");
     }
 
     @Test
-    public void testGetNotExistedValueShouldReturnNull() throws StorageDriverException, IOException {
+    public void testGetNotExistedValueShouldReturnNull() throws StorageException, IOException {
         String responseValue = storageDriver.get("myKey");
         Assertions.assertNull(responseValue);
     }
 
     @Test
-    public void testRemoveExistedValueShouldReturnValue() throws StorageDriverException, IOException {
+    public void testRemoveExistedValueShouldReturnValue() throws StorageException, IOException {
         storageDriver.set("myKey", "myValue", DEFAULT_TESTING_TTL_SECONDS);
         String responseValue = storageDriver.remove("myKey");
         Assertions.assertEquals(responseValue, "myValue");
     }
 
     @Test
-    public void testRemoveNotExistedValueShouldReturnNull() throws StorageDriverException, IOException {
+    public void testRemoveNotExistedValueShouldReturnNull() throws StorageException, IOException {
         String responseValue = storageDriver.remove("myKey");
         Assertions.assertNull(responseValue);
     }
 
     @Test
-    public void testDumpAndLoad() throws StorageDriverException, IOException, InterruptedException {
+    public void testDumpAndLoad() throws StorageException, IOException, InterruptedException {
         storageDriver.set("myKey", "myValue", DEFAULT_TESTING_TTL_SECONDS);
         Path tempFile = Files.createTempFile("storage", ".dat");
         try {

@@ -2,7 +2,7 @@ package ru.infotecs.internship.json.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.infotecs.internship.driver.StorageDriverException;
+import ru.infotecs.internship.storage.StorageException;
 import ru.infotecs.internship.json.JsonResponse;
 
 /**
@@ -23,15 +23,15 @@ public class JsonProcessor {
      * @param responseClass class of object to be created
      * @param <T>           the type of class (must be JsonResponse or extend it)
      * @return object representation of JSON
-     * @throws StorageDriverException if the conversion failed
+     * @throws StorageException if the conversion failed
      */
     public static <T extends JsonResponse> T parseJson(String response,
-                                                       Class<T> responseClass) throws StorageDriverException {
+                                                       Class<T> responseClass) throws StorageException {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(response, responseClass);
         } catch (JsonProcessingException e) {
-            throw new StorageDriverException("JSON response is not valid!");
+            throw new StorageException("JSON response is not valid!");
         }
     }
 }

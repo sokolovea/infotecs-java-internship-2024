@@ -1,16 +1,17 @@
 package ru.infotecs.internship.driver;
 
 import com.fasterxml.jackson.core.JacksonException;
-import org.springframework.http.HttpStatus;
 import ru.infotecs.internship.json.JsonRequest;
 import ru.infotecs.internship.json.JsonResponse;
 import ru.infotecs.internship.json.JsonResponseExtended;
 import ru.infotecs.internship.storage.EnumStorageStatus;
+import ru.infotecs.internship.storage.StorageException;
 
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.net.HttpURLConnection;
 
 import static ru.infotecs.internship.json.util.JsonProcessor.parseJson;
 
@@ -47,9 +48,9 @@ public class StorageDriver {
      * @param host server address
      * @param port server port
      * @return new instance of StorageDriver class if connection check has passed
-     * @throws StorageDriverException if connection check failed
+     * @throws StorageException if connection check failed
      */
-    public static StorageDriver connectStorage(String host, int port) throws StorageDriverException {
+    public static StorageDriver connectStorage(String host, int port) throws StorageException {
         return connectStorage(host, port, true, DEFAULT_TIMEOUT_MS);
     }
 
@@ -60,10 +61,10 @@ public class StorageDriver {
      * @param isConnectionChecked needing for checking connection with server in method
      * @param timeoutMs timeout for operations with server. If 0 then infinite timeout
      * @return new instance of StorageDriver class
-     * @throws StorageDriverException if connection check failed
+     * @throws StorageException if connection check failed
      */
     public static StorageDriver connectStorage(String host, int port, boolean isConnectionChecked,
-                                               int timeoutMs) throws StorageDriverException {
+                                               int timeoutMs) throws StorageException {
         StorageDriver driver = new StorageDriver();
         HttpURLConnection connection = null;
         driver.timeoutMs = timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
@@ -82,15 +83,15 @@ public class StorageDriver {
             connection.setReadTimeout(timeoutMs);
 
             int responseCode = connection.getResponseCode();
-            if (responseCode != HttpStatus.OK.value()) {
-                throw new StorageDriverException("Server connection test failed! Response code is not 200!");
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                throw new StorageException("Server connection test failed! Response code is not 200!");
             }
 
             String response = getResponse(connection);
             JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
 
             if (jsonResponse.getStatus() != EnumStorageStatus.CONNECTION_TEST_OK) {
-                throw new StorageDriverException(
+                throw new StorageException(
                         String.format("Server connection test failed! JSON status is not %s!",
                                 EnumStorageStatus.CONNECTION_TEST_OK));
             }
@@ -99,7 +100,7 @@ public class StorageDriver {
             return null;
         } catch (IOException e) {
             if (e instanceof JacksonException) {
-                throw new StorageDriverException("Server connection test failed! JSON response is not valid!");
+                throw new StorageException("Server connection test failed! JSON response is not valid!");
             }
         } finally {
             if (connection != null)
@@ -118,7 +119,7 @@ public class StorageDriver {
     private static String getResponse(HttpURLConnection connection) throws IOException {
         StringBuilder response = new StringBuilder();
         InputStream inputStream = null;
-        if (connection.getResponseCode() >= HttpStatus.BAD_REQUEST.value()) {
+        if (connection.getResponseCode() >= HttpURLConnection.HTTP_BAD_REQUEST) {
             inputStream = connection.getErrorStream();
         } else {
             inputStream = connection.getInputStream();
@@ -138,9 +139,9 @@ public class StorageDriver {
      * @param key key for record in database
      * @return value by key
      * @throws IOException if problems with connection occurs
-     * @throws StorageDriverException if server sends an incorrect response
+     * @throws StorageException if server sends an incorrect response
      */
-    public String get(String key) throws IOException, StorageDriverException {
+    public String get(String key) throws IOException, StorageException {
         URL url = new URL(serverURL + "/storage/" + key);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -159,9 +160,9 @@ public class StorageDriver {
      * @param ttlSeconds time to live for record in seconds (null for default TTL)
      * @return true if value set successfully, false otherwise
      * @throws IOException if problems with the connection
-     * @throws StorageDriverException if server sends an incorrect response
+     * @throws StorageException if server sends an incorrect response
      */
-    public boolean set(String key, String value, Long ttlSeconds) throws IOException, StorageDriverException {
+    public boolean set(String key, String value, Long ttlSeconds) throws IOException, StorageException {
         URL url = new URL(serverURL + "/storage");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
@@ -188,9 +189,9 @@ public class StorageDriver {
      * @param key key for record in database
      * @return removed value or null if value did not be removed
      * @throws IOException if problems with the connection
-     * @throws StorageDriverException if server sends an incorrect response
+     * @throws StorageException if server sends an incorrect response
      */
-    public String remove(String key) throws IOException, StorageDriverException {
+    public String remove(String key) throws IOException, StorageException {
         URL url = new URL(serverURL + "/storage/" + key);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("DELETE");
@@ -244,9 +245,9 @@ public class StorageDriver {
      * @param fileName file name of the dump
      * @return true if the server accepts the file, false otherwise
      * @throws IOException if problems with the connection or processing file on host
-     * @throws StorageDriverException if server sends an incorrect response
+     * @throws StorageException if server sends an incorrect response
      */
-    public boolean load(Path dirPath, String fileName) throws IOException, StorageDriverException {
+    public boolean load(Path dirPath, String fileName) throws IOException, StorageException {
         URL url = new URL(serverURL + "/load");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("PUT");

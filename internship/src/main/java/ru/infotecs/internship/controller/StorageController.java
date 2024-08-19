@@ -130,11 +130,12 @@ public class StorageController {
     @PutMapping("/load")
     public ResponseEntity<?> loadStorage(InputStream inputStream) {
         try (ObjectInputStream in = new ObjectInputStream(inputStream)) {
-            storage = (StorageMap) in.readObject();
             storage.stopTrim();
+            storage = (StorageMap) in.readObject();
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     new JsonResponse(EnumStorageStatus.VALUE_LOAD_OK));
         } catch (IOException | ClassNotFoundException e) {
+            storage.startTrim();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                     new JsonResponse(EnumStorageStatus.VALUE_LOAD_ERROR));
         }

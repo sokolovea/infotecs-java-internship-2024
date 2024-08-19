@@ -43,7 +43,7 @@ public class StorageMap implements Externalizable {
     /**
      * Maximum ttl difference between equals values (because of serialization and other processing delay)
      */
-    private static final long DELTA_TIME_MS = 250;
+    private static final long DELTA_TIME_MS = 250L;
 
     /**
      * Scheduled executor service for periodic trimming of expired records.
@@ -254,19 +254,6 @@ public class StorageMap implements Externalizable {
             }
         }
         return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = 1;
-        for (Map.Entry<String, RecordValue> entry : storage.entrySet()) {
-            result = 31 * result + (entry.getKey() == null ? 0 : entry.getKey().hashCode());
-            result = 31 * result + (entry.getValue().getValue() == null ? 0 : entry.getValue().getValue().hashCode());
-            if (entry.getValue().getTtlMs() != null) {
-                result = 31 * result + (int) (entry.getValue().getTtlMs() / DELTA_TIME_MS);
-            }
-        }
-        return result;
     }
 
     /**

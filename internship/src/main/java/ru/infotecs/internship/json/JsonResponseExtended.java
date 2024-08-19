@@ -13,6 +13,13 @@ public class JsonResponseExtended extends JsonResponse {
     private String data = null;
 
     /**
+     * Default constructor. Needs for Jackson.
+     */
+    public JsonResponseExtended() {
+        super();
+    }
+
+    /**
      * Constructs a new {@code JsonResponseExtended} with the given status.
      *
      * @param status the status of the response, indicating the result of user operation.
@@ -25,7 +32,7 @@ public class JsonResponseExtended extends JsonResponse {
      * Constructs a new {@code JsonResponseExtended} with the given status and additional data.
      *
      * @param status the status of the response, indicating the result of an operation.
-     * @param data the additional data to include in the response.
+     * @param data   the additional data to include in the response.
      */
     public JsonResponseExtended(EnumStorageStatus status, String data) {
         super(status);

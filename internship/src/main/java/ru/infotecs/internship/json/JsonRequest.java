@@ -24,6 +24,26 @@ public class JsonRequest {
     @JsonProperty("ttl")
     private Long ttlSeconds = null;
 
+
+    /**
+     * Default constructor. Needs for Jackson.
+     */
+    public JsonRequest() {
+    }
+
+    /**
+     * Constructs a new {@code JsonRequest} with the key-value pair and TTL.
+     *
+     * @param key        key associated with record
+     * @param value      record value
+     * @param ttlSeconds time to live in seconds
+     */
+    public JsonRequest(String key, String value, Long ttlSeconds) {
+        this.key = key;
+        this.value = value;
+        this.ttlSeconds = ttlSeconds;
+    }
+
     /**
      * Gets key associated with record.
      *
@@ -78,6 +98,9 @@ public class JsonRequest {
 
     @Override
     public String toString() {
-        return String.format("{ \"key\": \"%s\", \"value\": \"%s\", \"ttlSeconds\": %d }", key, value, ttlSeconds);
+        return String.format("{\"key\":\"%s\", \"value\":\"%s\", \"ttl\":%s}",
+                key != null ? key : "",
+                value != null ? value : "",
+                ttlSeconds != null ? ttlSeconds.toString() : "null");
     }
 }

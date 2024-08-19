@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * The tests cover most of the methods.
  */
 @WebMvcTest(StorageController.class)
-class StorageControllerTest {
+public class StorageControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -71,7 +71,7 @@ class StorageControllerTest {
         mockMvc.perform(post("/storage")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest.toString()))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(EnumStorageStatus.VALUE_SET_OK.name()));
     }
 
@@ -87,11 +87,11 @@ class StorageControllerTest {
         JsonRequest jsonRequest = new JsonRequest();
         jsonRequest.setKey(key);
         jsonRequest.setValue(value);
-        
+
         mockMvc.perform(post("/storage")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest.toString()))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(EnumStorageStatus.VALUE_SET_UPDATE_OK.name()));
     }
 

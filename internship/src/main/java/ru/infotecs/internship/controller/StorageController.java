@@ -76,7 +76,7 @@ public class StorageController {
         }
         EnumStorageStatus okStatus = isValueAlreadyExists ?
                 EnumStorageStatus.VALUE_SET_UPDATE_OK : EnumStorageStatus.VALUE_SET_OK;
-        return ResponseEntity.status(HttpStatus.CREATED).body(new JsonResponse(okStatus));
+        return ResponseEntity.status(HttpStatus.OK).body(new JsonResponse(okStatus));
     }
 
     /**

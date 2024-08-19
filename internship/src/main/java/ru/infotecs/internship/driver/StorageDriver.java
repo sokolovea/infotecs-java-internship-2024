@@ -2,6 +2,7 @@ package ru.infotecs.internship.driver;
 
 import com.fasterxml.jackson.core.JacksonException;
 import org.springframework.http.HttpStatus;
+import ru.infotecs.internship.json.JsonRequest;
 import ru.infotecs.internship.json.JsonResponse;
 import ru.infotecs.internship.json.JsonResponseExtended;
 import ru.infotecs.internship.storage.EnumStorageStatus;
@@ -143,7 +144,7 @@ public class StorageDriver {
         URL url = new URL(serverURL + "/storage/" + key);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
-        connection.setReadTimeout(1000);
+        connection.setReadTimeout(DEFAULT_TIMEOUT_MS);
 
         String response = getResponse(connection);
         JsonResponseExtended jsonResponseExtended = parseJson(response, JsonResponseExtended.class);
@@ -155,22 +156,22 @@ public class StorageDriver {
      *
      * @param key key for record in database
      * @param value value for setting record
-     * @param ttl time to live for record in seconds
+     * @param ttlSeconds time to live for record in seconds (null for default TTL)
      * @return true if value set successfully, false otherwise
      * @throws IOException if problems with the connection
      * @throws StorageDriverException if server sends an incorrect response
      */
-    public boolean set(String key, String value, Long ttl) throws IOException, StorageDriverException {
-        URL url = new URL(serverURL);
+    public boolean set(String key, String value, Long ttlSeconds) throws IOException, StorageDriverException {
+        URL url = new URL(serverURL + "/storage");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json; utf-8");
         connection.setDoOutput(true);
 
-        String jsonRequest = String.format("{\"key\":\"%s\", \"value\":\"%s\", \"ttlSeconds\":%d}", key, value, ttl);
+        JsonRequest jsonRequest = new JsonRequest(key, value, ttlSeconds);
 
         try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = jsonRequest.getBytes(StandardCharsets.UTF_8);
+            byte[] input = jsonRequest.toString().getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
         }
 

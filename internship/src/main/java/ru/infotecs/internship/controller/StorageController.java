@@ -129,8 +129,8 @@ public class StorageController {
      */
     @PutMapping("/load")
     public ResponseEntity<?> loadStorage(InputStream inputStream) {
+        storage.stopTrim();
         try (ObjectInputStream in = new ObjectInputStream(inputStream)) {
-            storage.stopTrim();
             storage = (StorageMap) in.readObject();
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     new JsonResponse(EnumStorageStatus.VALUE_LOAD_OK));

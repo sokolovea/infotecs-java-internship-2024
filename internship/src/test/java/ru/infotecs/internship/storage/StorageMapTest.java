@@ -32,32 +32,38 @@ public class StorageMapTest {
      */
     private StorageMap storageMap;
 
+
+    private static ConcurrentHashMap<String, RecordValue> getRawStorage(StorageMap storageMap)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field storageField = StorageMap.class.getDeclaredField("storage");
+        storageField.setAccessible(true);
+        return (ConcurrentHashMap<String, RecordValue>) storageField.get(storageMap);
+    }
+
     /**
-     * Constycts new storageMap object before each test case.
-     * @throws Exception if problems with starting trim thread
+     * Constructs new storageMap object before each test case.
      */
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         storageMap = new StorageMap();
     }
 
     /**
      * Stops trim process for garbage objects.
-     * @throws Exception if problems with stopping trim thread
      */
     @AfterEach
-    public void shutDown() throws Exception {
+    public void shutDown() {
         storageMap.stopTrim();
     }
 
     @Test
-    void putNewValueShouldCreateNewRecord() {
+    public void putNewValueShouldCreateNewRecord() {
         storageMap.putValue("myKey", "myValue");
         assertEquals("myValue", storageMap.getValue("myKey").getValue());
     }
 
     @Test
-    void putExistingValueShouldUpdateValueAndTTL() {
+    public void putExistingValueShouldUpdateValueAndTTL() {
         storageMap.putValue("myKey", "myValue", null);
         storageMap.putValue("myKey", "myValue2", 700L);
         RecordValue recordValue = storageMap.getValue("myKey");
@@ -66,45 +72,45 @@ public class StorageMapTest {
     }
 
     @Test
-    void getValueShouldReturnNullForNonExistentKey() {
+    public void getValueShouldReturnNullForNonExistentKey() {
         assertNull(storageMap.getValue("nonExistentKey"));
     }
 
     @Test
-    void expiredValueShouldNotBeGot() throws InterruptedException {
+    public void expiredValueShouldNotBeGot() throws InterruptedException {
         storageMap.putValue("myKey", "myValue", 1L);
         Thread.sleep(1000 + DELTA_TIME_MS);
         assertNull(storageMap.getValue("myKey"));
     }
 
     @Test
-    void getExistedValueShouldReturnCorrectRecord() {
+    public void getExistedValueShouldReturnCorrectRecord() {
         storageMap.putValue("myKey", "myValue");
         RecordValue recordValue = storageMap.getValue("myKey");
         assertEquals("myValue", recordValue.getValue());
     }
 
     @Test
-    void getNotExistedValueShouldReturnNull() {
+    public void getNotExistedValueShouldReturnNull() {
         storageMap.putValue("myKey", "myValue");
         RecordValue recordValue = storageMap.getValue("myKey2");
         assertNull(recordValue);
     }
 
     @Test
-    void removeExistedValueShouldBeCorrect() {
+    public void removeExistedValueShouldBeCorrect() {
         storageMap.putValue("myKey", "myValue", null);
         RecordValue recordValue = storageMap.removeValue("myKey");
         assertEquals("myValue", recordValue.getValue());
     }
 
     @Test
-    void removeNotExistedValueShouldBeCorrect() {
+    public void removeNotExistedValueShouldBeCorrect() {
         assertNull(storageMap.removeValue("myKey"));
     }
 
     @Test
-    void sameObjectsShouldBeEqual() {
+    public void sameObjectsShouldBeEqual() {
         storageMap.putValue("myKey", "myValue", 1L);
         storageMap.putValue("myKey2", "myValue2", 1L);
         StorageMap storageMapSecond = new StorageMap();
@@ -115,7 +121,7 @@ public class StorageMapTest {
     }
 
     @Test
-    void differObjectsShouldNotBeEqual() {
+    public void differObjectsShouldNotBeEqual() {
         storageMap.putValue("myKey", "myValue", 1L);
         storageMap.putValue("myKey2", "myValue2", 1L);
         StorageMap storageMapSecond = new StorageMap();
@@ -125,8 +131,8 @@ public class StorageMapTest {
     }
 
     @Test
-    void serializationAndDeserializationShouldBeCorrect() throws IOException, ClassNotFoundException {
-        StorageMap desetializedStorageMap = null;
+    public void serializationAndDeserializationShouldBeCorrect() throws IOException, ClassNotFoundException {
+        StorageMap desetializedStorageMap;
         storageMap.putValue("myKey", "myValue", 5L);
         storageMap.putValue("myKey2", "myValue2", 10L);
         storageMap.stopTrim();
@@ -145,7 +151,7 @@ public class StorageMapTest {
     }
 
     @Test
-    void startTrimShouldStartCleanupProcess()
+    public void startTrimShouldStartCleanupProcess()
             throws NoSuchFieldException, InterruptedException, IllegalAccessException {
         storageMap.putValue("myKey", "myValue", 1L);
         storageMap.putValue("myKey2", "myValue2", 1L);
@@ -155,7 +161,7 @@ public class StorageMapTest {
     }
 
     @Test
-    void stopTrimShouldDestroyCleanupProcess()
+    public void stopTrimShouldDestroyCleanupProcess()
             throws InterruptedException, NoSuchFieldException, IllegalAccessException {
         storageMap.stopTrim();
         storageMap.putValue("myKey", "myValue", 1L);
@@ -163,12 +169,5 @@ public class StorageMapTest {
         Thread.sleep(StorageMap.TRIM_DELAY_MS * 2);
         var rawStorage = getRawStorage(storageMap);
         assertEquals(2, rawStorage.size());
-    }
-
-    private static ConcurrentHashMap<String, RecordValue> getRawStorage(StorageMap storageMap)
-            throws NoSuchFieldException, IllegalAccessException, InterruptedException {
-        Field storageField = StorageMap.class.getDeclaredField("storage");
-        storageField.setAccessible(true);
-        return (ConcurrentHashMap<String, RecordValue>) storageField.get(storageMap);
     }
 }

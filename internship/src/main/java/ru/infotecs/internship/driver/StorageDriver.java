@@ -183,24 +183,6 @@ public class StorageDriver {
     }
 
     /**
-     * Gets timeout for operations with server. If 0 then infinite timeout.
-     *
-     * @return timeout for operations with server
-     */
-    public int getTimeoutMs() {
-        return timeoutMs;
-    }
-
-    /**
-     * Sets timeout for operations with server. If 0 then infinite timeout.
-     *
-     * @param timeoutMs timeout for operations with server
-     */
-    public void setTimeoutMs(int timeoutMs) {
-        this.timeoutMs = timeoutMs;
-    }
-
-    /**
      * Removes value by key from database
      *
      * @param key key for record in database
@@ -254,7 +236,6 @@ public class StorageDriver {
                 }
             }
         }
-
     }
 
     /**
@@ -295,6 +276,24 @@ public class StorageDriver {
         JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
 
         return jsonResponse.getStatus() == EnumStorageStatus.VALUE_LOAD_OK;
+    }
+
+    /**
+     * Gets timeout for operations with server. If 0 then infinite timeout.
+     *
+     * @return timeout for operations with server
+     */
+    public int getTimeoutMs() {
+        return timeoutMs;
+    }
+
+    /**
+     * Sets timeout for operations with server. If 0 then infinite timeout.
+     *
+     * @param timeoutMs timeout for operations with server
+     */
+    public void setTimeoutMs(int timeoutMs) {
+        this.timeoutMs = timeoutMs;
     }
 
 }

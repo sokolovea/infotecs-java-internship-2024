@@ -21,43 +21,43 @@ public class StorageDriverTest {
     private StorageDriver storageDriver;
 
     @BeforeEach
-    void setUp() throws StorageDriverException {
+    public void setUp() throws StorageDriverException {
         storageDriver = StorageDriver.connectStorage("localhost", port);
     }
 
     @Test
-    void testConnection() {
+    public void testConnection() {
         Assertions.assertNotNull(storageDriver);
     }
 
     @Test
-    void testSetNewValueAndGetItShouldBeCorrect() throws StorageDriverException, IOException {
+    public void testSetNewValueAndGetItShouldBeCorrect() throws StorageDriverException, IOException {
         storageDriver.set("myKey", "myValue", DEFAULT_TESTING_TTL_SECONDS);
         String responseValue = storageDriver.get("myKey");
         Assertions.assertEquals(responseValue, "myValue");
     }
 
     @Test
-    void testGetNotExistedValueShouldReturnNull() throws StorageDriverException, IOException {
+    public void testGetNotExistedValueShouldReturnNull() throws StorageDriverException, IOException {
         String responseValue = storageDriver.get("myKey");
         Assertions.assertNull(responseValue);
     }
 
     @Test
-    void testRemoveExistedValueShouldReturnValue() throws StorageDriverException, IOException {
+    public void testRemoveExistedValueShouldReturnValue() throws StorageDriverException, IOException {
         storageDriver.set("myKey", "myValue", DEFAULT_TESTING_TTL_SECONDS);
         String responseValue = storageDriver.remove("myKey");
         Assertions.assertEquals(responseValue, "myValue");
     }
 
     @Test
-    void testRemoveNotExistedValueShouldReturnNull() throws StorageDriverException, IOException {
+    public void testRemoveNotExistedValueShouldReturnNull() throws StorageDriverException, IOException {
         String responseValue = storageDriver.remove("myKey");
         Assertions.assertNull(responseValue);
     }
 
     @Test
-    void testDumpAndLoad() throws StorageDriverException, IOException, InterruptedException {
+    public void testDumpAndLoad() throws StorageDriverException, IOException, InterruptedException {
         storageDriver.set("myKey", "myValue", DEFAULT_TESTING_TTL_SECONDS);
         Path tempFile = Files.createTempFile("storage", ".dat");
         try {

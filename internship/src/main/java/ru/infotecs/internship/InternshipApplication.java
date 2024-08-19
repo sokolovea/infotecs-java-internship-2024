@@ -13,7 +13,7 @@ public class InternshipApplication {
         SpringApplication.run(InternshipApplication.class, args);
         StorageDriver a = null;
 //        try {
-//            a = StorageDriver.connectStorage("127.0.0.1", 8080);
+//            a = StorageDriver.connectStorage("127.0.0.1", 8082);
 //            System.out.println("Connected to Storage!");
 //            System.out.println(a.get("1"));
 //            Path dirPath = Paths.get("d:");

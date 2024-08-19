@@ -32,7 +32,7 @@ public class StorageControllerTest {
     private StorageMap storageMap;
 
     @Test
-    void getExistingValueShouldBeCorrect() throws Exception {
+    public void getExistingValueShouldBeCorrect() throws Exception {
         String key = "key";
         String value = "value";
         RecordValue recordValue = new RecordValue(value, 1000L);
@@ -45,7 +45,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void getNotExistingValueShouldBeCorrect() throws Exception {
+    public void getNotExistingValueShouldBeCorrect() throws Exception {
         String key = "key";
         when(storageMap.getValue(key)).thenReturn(null);
 
@@ -56,7 +56,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void setNotExistingValueShouldCreateNewRecord() throws Exception {
+    public void setNotExistingValueShouldCreateNewRecord() throws Exception {
         String key = "key";
         String value = "value";
 
@@ -76,7 +76,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void setExistingValueShouldUpdateRecord() throws Exception {
+    public void setExistingValueShouldUpdateRecord() throws Exception {
         String key = "key";
         String value = "value";
 
@@ -96,7 +96,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void removeExistingValueShouldReturnValue() throws Exception {
+    public void removeExistingValueShouldReturnValue() throws Exception {
         String key = "key";
         String value = "value";
 
@@ -111,7 +111,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void removeNotExistingValueShouldReturnNull() throws Exception {
+    public void removeNotExistingValueShouldReturnNull() throws Exception {
         String key = "key";
         String value = "value";
 
@@ -126,7 +126,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void dumpStorageShouldReturnCorrectResponse() throws Exception {
+    public void dumpStorageShouldReturnCorrectResponse() throws Exception {
         String fileName = "storage.dat";
 
         mockMvc.perform(get("/dump"))
@@ -137,7 +137,7 @@ public class StorageControllerTest {
     }
 
     @Test
-    void loadStorageShouldReturnCorrectResponse() throws Exception {
+    public void loadStorageShouldReturnCorrectResponse() throws Exception {
         try (ByteArrayOutputStream byteOutStream = new ByteArrayOutputStream();
              ObjectOutputStream objectOutStream = new ObjectOutputStream(byteOutStream)) {
             objectOutStream.writeObject(new StorageMap());

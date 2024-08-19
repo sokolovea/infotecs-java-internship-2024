@@ -59,6 +59,18 @@ public class StorageMap implements Externalizable {
     }
 
     /**
+     * Checks if the provided TTL value in milliseconds is correct.
+     * It was decided not to fix ttlMs less than 0 on DEFAULT_TTL_MS automatically,
+     * "correct" value means not null and less than MAX_TTL_MS
+     *
+     * @param ttlMs the TTL value in milliseconds to check
+     * @return true if the TTL is not null, false otherwise
+     */
+    private static Boolean isTtlCorrect(Long ttlMs) {
+        return (ttlMs != null) && (ttlMs <= MAX_TTL_MS);
+    }
+
+    /**
      * Adds a value to the storage with the default TTL.
      *
      * @param key   the key for the record
@@ -138,20 +150,6 @@ public class StorageMap implements Externalizable {
     }
 
     /**
-     * Checks if a key de-facto exists in the storage (but the key may not be valid).
-     *
-     * @param key the key to check
-     * @return true if the key exists, false otherwise
-     */
-    private boolean isKeyExist(String key) {
-        try {
-            return storage.containsKey(key);
-        } catch (NullPointerException e) {
-            return false;
-        }
-    }
-
-    /**
      * Checks if a key is valid.
      *
      * @param key the key to check
@@ -159,18 +157,6 @@ public class StorageMap implements Externalizable {
      */
     public boolean isKeyValid(String key) {
         return isKeyExist(key) && (storage.get(key).getExpirationTime() > System.currentTimeMillis());
-    }
-
-    /**
-     * Checks if the provided TTL value in milliseconds is correct.
-     * It was decided not to fix ttlMs less than 0 on DEFAULT_TTL_MS automatically,
-     * "correct" value means not null and less than MAX_TTL_MS
-     *
-     * @param ttlMs the TTL value in milliseconds to check
-     * @return true if the TTL is not null, false otherwise
-     */
-    private static Boolean isTtlCorrect(Long ttlMs) {
-        return (ttlMs != null) && (ttlMs <= MAX_TTL_MS);
     }
 
     /**
@@ -208,6 +194,9 @@ public class StorageMap implements Externalizable {
      * Starts the trimming process to remove expired records.
      */
     public void startTrim() {
+        if (scheduler == null || scheduler.isShutdown()) {
+            scheduler = Executors.newScheduledThreadPool(1);
+        }
         scheduler.scheduleAtFixedRate(this::trim, TRIM_DELAY_MS, TRIM_DELAY_MS, TimeUnit.MILLISECONDS);
     }
 
@@ -250,6 +239,20 @@ public class StorageMap implements Externalizable {
             }
         }
         return true;
+    }
+
+    /**
+     * Checks if a key de-facto exists in the storage (but the key may not be valid).
+     *
+     * @param key the key to check
+     * @return true if the key exists, false otherwise
+     */
+    private boolean isKeyExist(String key) {
+        try {
+            return storage.containsKey(key);
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
     /**

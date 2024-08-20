@@ -67,7 +67,7 @@ public class StorageDriver {
                                                int timeoutMs) throws StorageException {
         StorageDriver driver = new StorageDriver();
         HttpURLConnection connection = null;
-        driver.timeoutMs = timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
+        driver.timeoutMs = timeoutMs >= 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
         try {
             URI uri = new URI("http", null, host, port, null, null, null);
             driver.serverURL = uri.toString();
@@ -102,9 +102,12 @@ public class StorageDriver {
             if (e instanceof JacksonException) {
                 throw new StorageException("Server connection test failed! JSON response is not valid!");
             }
+            if (e instanceof ConnectException) {
+                throw new StorageException("Connection refused!");
+            }
         } finally {
             if (connection != null)
-                connection.disconnect();
+                 connection.disconnect();
         }
         return driver;
     }
@@ -177,6 +180,7 @@ public class StorageDriver {
         }
 
         String response = getResponse(connection);
+        connection.disconnect();
         JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
 
         return jsonResponse.getStatus() == EnumStorageStatus.VALUE_SET_OK
@@ -197,7 +201,7 @@ public class StorageDriver {
         connection.setRequestMethod("DELETE");
         String response = getResponse(connection);
         JsonResponseExtended jsonResponse = parseJson(response, JsonResponseExtended.class);
-
+        connection.disconnect();
         return jsonResponse.getData();
     }
 
@@ -227,6 +231,8 @@ public class StorageDriver {
                 }
 
                 File file = new File(dirPath.toString(), fileName);
+
+                 connection.disconnect();
 
                 if (!file.exists()) {
                     file.createNewFile();
@@ -274,6 +280,7 @@ public class StorageDriver {
         }
 
         String response = getResponse(connection);
+        connection.disconnect();
         JsonResponse jsonResponse = parseJson(response, JsonResponse.class);
 
         return jsonResponse.getStatus() == EnumStorageStatus.VALUE_LOAD_OK;

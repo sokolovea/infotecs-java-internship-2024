@@ -1,0 +1,77 @@
+После сборки проекта драйвер будет находиться в target/internship-service-driver.jar
+Главный класс библиотеки StorageDriver имеет комментарии javadoc, поэтому цель данного
+руководства в большей степени прикладная - объяснить принцип подключения библиотеки
+к проекту и рассмотреть основные возможности библиотеки на конкретном примере.
+
+Драйвер подключается к проекту как библиотека, пример ее подключения в pom.xml вместе
+с другими необходимыми зависимостями для ее работы:
+
+<dependency>
+    <groupId>ru.infotecs</groupId>
+    <artifactId>service</artifactId>
+    <version>1.0.0</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/lib/internship-service-driver.jar</systemPath>
+</dependency>
+
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.17.2</version>
+</dependency>
+
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-annotations</artifactId>
+    <version>2.17.2</version>
+</dependency>
+
+Для создания объекта StorageDriver необходимо использовать один из перегруженных 
+фабричных методов connectStorage, передав туда как минимум адрес сервера и его порт.
+Метод с бОльшим количеством параметров позволяет также не проверять факт работоспособности
+сервера и устанавливать максимальную задержку ответа от сервера.
+
+Далее для вызова доступны методы для получения, установки, удаления значений, выгрузки и
+загрузки дампа базы данных на сервер. Пример по работе с методами драйвера представлен ниже:
+
+import ru.infotecs.internship.driver.StorageDriver;
+import ru.infotecs.internship.storage.StorageException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class Runner {
+    public static void main(String[] args) {
+        try {
+            // If the connection fails, an exception is thrown.
+            StorageDriver storageDriver = StorageDriver.connectStorage("127.0.0.1", 8082);
+
+            storageDriver.set("myKey", "myValue", 10L);
+            System.out.println(storageDriver.get("myKey"));
+            String removedValue = storageDriver.remove("myKey");
+            System.out.println("Was removed " + removedValue + "; now value = " + storageDriver.get("myKey"));
+
+            // Load and dump database. Create temp files in your OS temp directory
+            Path tempFile = Files.createTempFile("storage", ".dat");
+            try {
+                storageDriver.dump(tempFile.getParent(), tempFile.getFileName().toString());
+                storageDriver.load(tempFile.getParent(), tempFile.getFileName().toString());
+            } finally {
+                Files.deleteIfExists(tempFile);
+            }
+            System.out.println("Files have been successfully dumped and loaded!");
+        } catch (StorageException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+В случае успеха получим:
+myValue
+Was removed myValue; now value = null
+Files have been successfully dumped and loaded!
+
+
+
+
+

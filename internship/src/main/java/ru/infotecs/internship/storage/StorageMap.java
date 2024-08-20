@@ -268,6 +268,5 @@ public class StorageMap implements Externalizable {
                 return valueInternal;
             });
         }
-        System.out.println("Trimmed! " + storage.size());
     }
 }

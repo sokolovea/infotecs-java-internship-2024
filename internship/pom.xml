@@ -63,7 +63,7 @@
                         </goals>
                         <configuration>
                             <mainClass>ru.infotecs.internship.InternshipApplication</mainClass>
-                            <finalName>class</finalName>
+                            <finalName>service</finalName>
                         </configuration>
                     </execution>
                 </executions>
